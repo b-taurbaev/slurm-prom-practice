@@ -1,0 +1,68 @@
+- name: Создать пользователя Node Exporter
+  ansible.builtin.user:
+    name: "{{ node_exporter_user }}"
+    shell: /sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Создать директорию для Node Exporter
+  ansible.builtin.file:
+    path: "{{ node_exporter_install_dir }}"
+    state: directory
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    mode: '0755'
+
+- name: Определить архитектуру процессора
+  ansible.builtin.command: uname -m
+  register: arch_output
+  changed_when: false
+
+- name: Установить переменную для архитектуры
+  ansible.builtin.set_fact:
+    node_exporter_arch: >-
+      {{ 'linux-amd64' if arch_output.stdout == 'x86_64' else
+         'linux-arm64' if arch_output.stdout == 'aarch64' else
+         'linux-armv7' if arch_output.stdout == 'armv7l' else 'unsupported' }}
+
+- name: Скачать и установить Node Exporter
+  ansible.builtin.unarchive:
+    src: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}.tar.gz"
+    dest: "{{ node_exporter_install_dir }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+
+- name: Установить systemd unit для Node Exporter
+  ansible.builtin.template:
+    src: "node_exporter.service.j2"
+    dest: "/etc/systemd/system/node_exporter.service"
+    mode: '0644'
+  notify:
+    - Reload Node Exporter
+
+- name: Запустить и включить Node Exporter
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: yes
+
+
+- name: Проверить, есть ли Node Exporter в Prometheus
+  ansible.builtin.slurp:
+    src: /etc/prometheus/prometheus.yml
+  register: prometheus_config
+  delegate_to: "{{ groups['prometheus'][0] }}"
+
+- name: Добавить Node Exporter в конфигурацию Prometheus
+  ansible.builtin.template:
+    src: "prometheus_config.j2"
+    dest: "/etc/prometheus/prometheus.yml"
+    mode: '0644'
+  when: inventory_hostname not in prometheus_config['content'] | b64decode
+  notify:
+    - Reload Prometheus
+  delegate_to: "{{ groups['prometheus'][0] }}"
+
+

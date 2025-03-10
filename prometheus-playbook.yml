@@ -8,3 +8,13 @@
   roles:
     - prometheus
 
+- name: Instaling and configuring  Node Exporter
+  hosts: node_exporters
+  become: yes  
+  become_method: sudo
+  roles:
+    - node_exporters  # Новая роль для Node Exporter
+  tags:
+    - monitoring
+    - node_exporter  
+
