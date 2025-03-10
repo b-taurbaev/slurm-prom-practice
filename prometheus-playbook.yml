@@ -1,0 +1,10 @@
+- name: Prometheus install
+  hosts: promserver 
+  become: yes  
+  become_method: sudo
+  tags:
+    - monitoring
+    - promserver  
+  roles:
+    - prometheus
+
