@@ -1,3 +1,4 @@
+---
 - name: Prometheus install
   hosts: promserver 
   become: yes  
@@ -13,8 +14,18 @@
   become: yes  
   become_method: sudo
   roles:
-    - node_exporters  # Новая роль для Node Exporter
+    - node_exporters  
   tags:
     - monitoring
     - node_exporter  
 
+
+- name: Install and configure Elasticsearch and Kibana
+  hosts: elastic_kibana 
+  become: yes  
+  become_method: sudo
+  roles:
+    - elastic_kibana
+  tags:
+    - monitoring
+    - elastic_kibana
