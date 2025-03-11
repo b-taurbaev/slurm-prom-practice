@@ -29,3 +29,14 @@
   tags:
     - monitoring
     - elastic_kibana
+
+- name: Install Fluent Bit
+  hosts: log_servers
+  become: yes  
+  become_method: sudo
+  tags:
+    - monitoring
+    - logging  
+  roles:
+    - fluentbit
+

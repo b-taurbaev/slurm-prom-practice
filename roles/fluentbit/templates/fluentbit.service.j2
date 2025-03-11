@@ -1,0 +1,13 @@
+[Unit]
+Description=Fluent Bit
+After=network.target
+
+[Service]
+ExecStart=/opt/fluentbit/bin/fluent-bit -c {{ fluentbit_config_dir }}/fluentbit.conf
+Restart=always
+User={{ fluentbit_user }}
+Group={{ fluentbit_group }}
+
+[Install]
+WantedBy=multi-user.target
+
