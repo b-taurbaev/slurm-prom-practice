@@ -3,24 +3,24 @@ all:
     prometheus:
       hosts:
         promserver:
-          ansible_host: 172.16.16.129 
-          ansible_user: test 
+          ansible_host: 172.16.16.133 
+          ansible_user: adminusr
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
     node_exporters:
       hosts:
         prom-target1:
-          ansible_host: 172.16.16.129
-          ansible_user: test 
+          ansible_host: 172.16.16.134
+          ansible_user: adminusr 
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
     elastic_kibana:
       hosts:
         es1:
-          ansible_host: 172.16.16.129      
-          ansible_user: test 
+          ansible_host: 172.16.16.133      
+          ansible_user: adminusr
           ansible_ssh_private_key_file: ~/.ssh/id_rsa
     fluentbit:
       hosts:
         log_servers:
-          ansible_host: 172.16.16.129      
-          ansible_user: test 
+          ansible_host: 172.16.16.134      
+          ansible_user: adminusr
           ansible_ssh_private_key_file: ~/.ssh/id_rsa

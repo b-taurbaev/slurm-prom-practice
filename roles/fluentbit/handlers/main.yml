@@ -1,6 +1,6 @@
 - name: Restart Fluent Bit
   ansible.builtin.systemd:
-    name: fluentbit
+    name: fluent-bit
     state: restarted
     daemon_reload: yes
 

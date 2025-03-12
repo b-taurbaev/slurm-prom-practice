@@ -1,17 +1,3 @@
-- name: Get system architecture
-  ansible.builtin.command: uname -m
-  register: system_arch
-  changed_when: false
-
-- name: Set architecture variable
-  ansible.builtin.set_fact:
-    fluentbit_arch: "{{ fluentbit_arch_map[system_arch.stdout] | default('unsupported') }}"
-
-- name: Fail if architecture is not supported
-  ansible.builtin.fail:
-    msg: "Unsupported architecture: {{ system_arch.stdout }}"
-  when: fluentbit_arch == "unsupported"
-
 - name: Create Fluent Bit group
   ansible.builtin.group:
     name: "{{ fluentbit_group }}"
@@ -24,16 +10,27 @@
     system: yes
     create_home: no
 
-- name: Download Fluent Bit
-  ansible.builtin.get_url:
-    url: "https://packages.fluentbit.io/ubuntu/focal/pool/main/f/fluent-bit/fluent-bit-{{ fluentbit_version }}-{{ fluentbit_arch }}.deb"
-    dest: "/tmp/fluent-bit.deb"
-    mode: '0644'
+#------------Install Fluentbit----------------------------------
+- name: Add Fluent Bit GPG Key
+  ansible.builtin.apt_key:
+    url: https://packages.fluentbit.io/fluentbit.key
+    state: present
+
+- name: Add Fluent Bit Repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.fluentbit.io/ubuntu/jammy jammy main"
+    state: present
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
 
 - name: Install Fluent Bit
   ansible.builtin.apt:
-    deb: "/tmp/fluent-bit.deb"
-  when: ansible_os_family == "Debian"
+    name: fluent-bit
+    state: latest      
+     
+#------------------------------------------------------------------------
 
 - name: Create Fluent Bit config directory
   ansible.builtin.file:
@@ -46,24 +43,16 @@
 - name: Deploy Fluent Bit configuration
   ansible.builtin.template:
     src: "fluentbit.conf.j2"
-    dest: "{{ fluentbit_config_dir }}/fluentbit.conf"
+    dest: "{{ fluentbit_config_dir }}/fluent-bit.conf"
     owner: "{{ fluentbit_user }}"
     group: "{{ fluentbit_group }}"
     mode: "0644"
   notify: Restart Fluent Bit
 
-- name: Deploy Fluent Bit systemd service
-  ansible.builtin.template:
-    src: "fluentbit.service.j2"
-    dest: "/etc/systemd/system/fluentbit.service"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  notify: Restart Fluent Bit
 
 - name: Enable and start Fluent Bit service
   ansible.builtin.systemd:
-    name: fluentbit
+    name: fluent-bit
     enabled: yes
     state: started
     daemon_reload: yes

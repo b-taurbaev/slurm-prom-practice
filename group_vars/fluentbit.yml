@@ -1,14 +1,9 @@
-fluentbit_version: "2.1.7"
+fluentbit_version: "3.1"
 
 fluentbit_user: "fluentbit"
 fluentbit_group: "fluentbit"
-fluentbit_install_dir: "/opt/fluentbit"
-fluentbit_config_dir: "/etc/fluentbit"
+fluentbit_config_dir: "/etc/fluent-bit/"
 
-elasticsearch_host: "http://localhost:9200"
+elasticsearch_host: "http://172.16.16.133:9200"
 elasticsearch_index: "fluentbit-logs"
-
-fluentbit_arch_map:
-  x86_64: "amd64"
-  aarch64: "arm64"
 
